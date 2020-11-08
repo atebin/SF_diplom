@@ -11,7 +11,7 @@ Vue.config.productionTip = false
 Vue.use(VueRouter);
 
 const routes = [
-  { path: '/home', component: Home},  
+  { path: '/home', component: Home, props: {newCaseMode: 'noAuth'}},  
   { path: '/cases', component: Cases},
   { path: '/officers', component: Officers},
   { path: '/testapi', component: TestApi}, 
