@@ -1,9 +1,11 @@
 <template>
-    <div class="case">
+    <form class="case">
         <h2>сообщить о краже</h2>
         <div class="case-data-item">
             <span class="case-data-item-part1">Дата происшествия</span>
-            <input type="date" name="date" class="case-data-item-part2">
+            <input type="date" name="date" class="case-data-item-part2" v-model.lazy="dataCase.date" title="Дата отправки заявления о краже">
+
+
         </div>
         <select 
             class="case-data-item" 
@@ -15,10 +17,10 @@
                 :key="num"
             >{{status}}</option>
         </select>      
-        <input type="text" class="case-data-item" placeholder="Номер велосипеда" v-model.lazy="dataCase.date">        
-        <input type="text" class="case-data-item" placeholder="Цвет велосипеда" v-model.lazy="dataCase.color"> 
-        <input type="text" class="case-data-item" placeholder="ФИО заявителя" v-model.lazy="dataCase.ownerFullName">  
-        <select class="case-data-item" placeholder="Тип велосипеда" v-model="dataCase.type">
+        <input type="text" class="case-data-item" placeholder="Номер велосипеда" v-model.lazy="dataCase.date" title="Номер велосипеда">        
+        <input type="text" class="case-data-item" placeholder="Цвет велосипеда" v-model.lazy="dataCase.color" title="Цвет велосипеда"> 
+        <input type="text" class="case-data-item" placeholder="ФИО заявителя" v-model.lazy="dataCase.ownerFullName" title="ФИО заявителя">  
+        <select class="case-data-item" placeholder="Тип велосипеда" v-model="dataCase.type" title="Тип велосипеда">
             <option
                 v-for="(type, num) in settings.types"
                 :key="num"
@@ -35,8 +37,9 @@
         <button 
             class="case-data-send"
             @click="eventClickButtonSend"
-        >Отправить информацию</button>       
-    </div>
+        >Отправить информацию</button> 
+        <!--input type="submit" value="Отправить информацию" class="case-data-send"-->     
+    </form>
 </template>
 
 <script>
@@ -104,10 +107,10 @@ export default {
     methods: {
 
         setDefaultValueInCase(editedCase) {
-            let now = new Date();
-            console.log(`now: ${now}`);
+            let dateNow = new Date();
+            console.log(`now: ${dateNow}`);
 
-            this.dataCase.date = '11';
+            this.dataCase.date = new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate());
             this.dataCase.createdAt = '22';
             this.dataCase.updateAt = '33';
 
@@ -124,6 +127,7 @@ export default {
         },
 
         eventClickButtonSend() {
+            console.log("eee");
             this.setDefaultValueInCase(false);
         },
     },
@@ -178,7 +182,7 @@ export default {
     .case-data-send{
         background-color: blue;
         color: #fff;
-        padding: 10px 20px;
+        padding: 10px 40px;
         margin: 40px 0px;
     }
 

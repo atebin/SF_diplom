@@ -1,19 +1,23 @@
 <template>
     <div id="app">
-        <div class="common-hf header">
-            <div class="header-nav">
+        <nav class="common-header_footer header">
+            <div class="header-nav_main">
                 <router-link 
                     to="/home" 
-                    class="header-nav-item"
-                >Сообщить</router-link>
+                    class="header-nav_main-item"
+                >Главная</router-link>
+                <router-link 
+                    to="/notice" 
+                    class="header-nav_main-item"
+                >Сообщить о краже</router-link>
                 <router-link 
                     to="/cases" 
-                    class="header-nav-item"
+                    class="header-nav_main-item"
                     v-if="globalSetting.isAuth"
                 >Украденные велосипеды</router-link>
                 <router-link 
                     to="/officers" 
-                    class="header-nav-item"
+                    class="header-nav_main-item"
                     v-if="globalSetting.isAuth"
                 >Ответственные сотрудники</router-link>
                 <router-link 
@@ -21,58 +25,167 @@
                     class="header-nav-item"
                 >Test API</router-link>
             </div>
-            <div class="header-user">
+            <div class="header-nav_user">
                 <button
-                    @click="eventClickButtonSignIn"
-                >Авторизоваться</button>
+                    v-if="!globalSetting.isAuth"
+                    @click="openModal('signIn')"
+                    class="header-nav_user-item"
+                >Вход</button>
+                <button
+                    v-if="!globalSetting.isAuth"
+                    @click="openModal('signUp')"
+                    class="header-nav_user-item"
+                >Регистрация</button>
+                <button
+                    v-if="globalSetting.isAuth"
+                    @click="exitAuth"
+                    class="header-nav_user-item"
+                >Выход</button>
             </div>
-        </div>
+        </nav>
 
         <div class="inner">
             <router-view 
                 :globalSetting="globalSetting"
+                :axiosSetting="axiosSetting"
+                :officerDelete="officerDelete"
+
+                :openModal="openModal"
+                :inWork="inWork"
+                :setProcessInWork="setProcessInWork"
+
+                :isFormVisibleSignUp="modal.signUp.visible"
+                :modalClose="modalClose"
+                :officerSignUp="officerSignUp"
+                :clientId="globalSetting.clientId"
+                :formErrorText="modal['signUp'].error"
+                :formSuccessText="modal['signUp'].success"
             ></router-view>
         </div>
 
-        <div class="common-hf footer">
+        <div class="common-header_footer footer">
             <div class="informer">Информер 1</div>
             <div class="informer">Информер 2</div>
             <div class="informer">Информер 3</div>
         </div>
 
+        <Modal
+            v-if="modal.signIn.visible"
+            modalName='signIn'
+            :modalClose="modalClose"
+        >
+            
+            <template v-slot:main>
+                <FormSignIn 
+                    :modalClose="modalClose"
+                    :userSignIn="userSignIn"
+                    :formErrorText="modal['signIn'].error"
+                    :formSuccessText="modal['signIn'].success"
+                />
+            </template>
+        </Modal>
+
+        <Modal
+            v-if="modal.signUp.visible"
+            modalName='signUp'
+            :modalClose="modalClose"
+        >
+            
+            <template v-slot:main>
+                <FormSignUp 
+                    :modalClose="modalClose"
+                    :officerSignUp="officerSignUp"
+                    :clientId="globalSetting.clientId"
+                    :formErrorText="modal['signUp'].error"
+                    :formSuccessText="modal['signUp'].success"
+                />
+            </template>
+        </Modal>
+
   </div>
 </template>
 
 <script>
-    const HOST_AND_PORT_FOR_API = 'http://84.201.129.203:8888/';
+const HOST_AND_PORT_FOR_API = 'http://84.201.129.203:8888/';
+const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHByb3ZlZCI6dHJ1ZSwiX2lkIjoiNWZhNmYxNDYwYmQ3NTkwMDExZjNhODc4IiwiZW1haWwiOiJ0ZXN0MUBhdGViaW4ucnUiLCJmaXJzdE5hbWUiOiJmbl90ZXN0MSIsImxhc3ROYW1lIjoibG5fdGVzdDEiLCJjbGllbnRJZCI6InExdzIiLCJfX3YiOjAsImlhdCI6MTYwNDc3ODQ5OH0.Fw5rzKIYLluxF-knlq928Qal8kfyZYt2_XTdhcSsOQY';
+const CLIENT_ID = 'q1w2';
 
-    import axios from 'axios'
-//import HelloWorld from './components/HelloWorld.vue'
+import axios from 'axios'
+import Modal from './components/Modal.vue'
+import FormSignIn from './components/FormSignIn.vue'
+import FormSignUp from './components/FormSignUp.vue'
 
 export default {
     name: 'App',
   
     components: {
-        //HelloWorld
+        Modal,
+        FormSignIn,
+        FormSignUp,
     },
 
     data: () => {
         return {
             globalSetting: {
-                clientId: '',
-                token: '',
+                clientId: CLIENT_ID,
+                token: TOKEN,
                 isAuth: false,
-            },            
+                //isConnectedServer: false,
+            },
+            inWork: {
+                add: false,
+                delete: false,
+            },
+            axiosSetting: {
+                hostAndPortForApi: HOST_AND_PORT_FOR_API,
+                connectionApiNoAuth: null,
+                connectionApiAuth: null,
+            },
+            modal: {
+                signIn: {
+                    visible: false,
+                    error: '',
+                    success: '',
+                },
+                signUp: {
+                    visible: false,
+                    error: '',
+                    success: '',
+                }
+            }           
         }
     },
 
     methods: {
-        eventClickButtonSignIn() {
 
-            let dataUserSignIn = {
-            email: 'test1@atebin.ru',
-            password: '123_atebin',
-            };     
+        // application
+        openModal(modalName) {
+            this.modal[modalName].visible = true;
+        },
+
+        modalClose(modalName) {
+            this.modal[modalName].visible = false;
+        },
+
+        exitAuth() {
+            this.globalSetting.isAuth = false;
+        },
+
+        setProcessInWork(processName) {
+            this.inWork[processName] = true;
+        },
+
+        // ***** system
+        systemSignUp() {
+            /*
+            let dataSystemSignUp = {
+                email: 'test1@atebin.ru',
+                firstName: 'Александр',
+                lastName: 'Тебин',
+                password: '123_atebin',
+                repassword: '123_atebin',
+                clientId: 'q1w2',
+            }      
 
             const connectionApiNoAuth = axios.create({
                 baseURL: HOST_AND_PORT_FOR_API,
@@ -82,30 +195,155 @@ export default {
                 }
             });
 
-            connectionApiNoAuth.post('api/auth/sign_in', dataUserSignIn)
+            connectionApiNoAuth.post('api/auth/sign_up', dataSystemSignUp)
             .then(response => {
-                let resp = response.data;
-                console.log('post: api/auth/sign_in');
-                console.log(resp);
-                console.log(resp.token);
-                console.log('---------------------------');
-
-                this.globalSetting.token = response.data.token;
-                this.globalSetting.clientId = response.data.clientId;
-                this.globalSetting.isAuth = true;
+                console.log('Получены регистрационные данныет для первого пользователя: ' + response);
             })
-            .catch(err => {
-                console.log('post: api/auth/sign_in');
-                console.log(err);
-                console.log('===========================');      
+            .catch(() => {
+                console.log('Ошибка создания первого пользователя! Проверьте регистрационные данные.');
+            });
+            */
+        },
+
+        systemSignIn() {
+            /*
+            let dataSystemSignIn = {
+                email: 'test1@atebin.ru',
+                password: '123_atebin',
+            }; 
+              
+            const connectionApiNoAuth = axios.create({
+                baseURL: HOST_AND_PORT_FOR_API,
+                timeout: 0,
+                headers: {
+                    'Content-type': 'application/json',
+                }
+            });
+
+            connectionApiNoAuth.post('api/auth/sign_in', dataSystemSignIn)
+            .then(response => {
+
+                console.log(response);
+
+                let errorTokenOrClienId = false;
+                if (response.data.token === '') {
+                    errorTokenOrClienId = true;
+                    console.log('Получен пустой токен!');
+                }
+
+                if (this.globalSetting.clientId !== response.data.clientId) {
+                    errorTokenOrClienId = true;
+                    console.log('Получен некорректный clientId: ' + response.data.clientId);
+                }
+
+                if (!errorTokenOrClienId) {
+                    this.globalSetting.isConnectedServer = true;
+                    this.globalSetting.token = response.data.token;
+                }
+            })
+            .catch(() => {
+                console.log('Ошибка входа в систему! Проверьте регистрационные данные.');
+            });
+            */
+        },
+
+        // ***** user
+        userSignIn(dataSignIn) {
+
+            console.log('modalSignIn');
+            console.log(dataSignIn);
+
+            this.axiosSetting.connectionApiNoAuth.post('api/auth/sign_in', dataSignIn)
+            .then(response => {
+
+                let errorTokenOrClienId = false;
+                if (response.data.token === '') {
+                    errorTokenOrClienId = true;
+                    this.modal['signIn'].error = 'Ошибка! Пустой токен.';
+                    console.log('Получен токен: ' + response.data.token);
+                }
+
+                if (this.globalSetting.clientId !== response.data.clientId) {
+                    errorTokenOrClienId = true;
+                    this.modal['signIn'].error = 'Ошибка! Получен неверный clientId.';
+                    console.log('Получен токен: ' + response.data.clientId);
+                }
+
+                if (!errorTokenOrClienId) {
+                    this.globalSetting.token = response.data.token
+                    this.globalSetting.isAuth = true;
+                    this.modal['signIn'].error = '';
+                    this.modal['signIn'].visible = false;
+                }
+            })
+            .catch(() => {
+                this.modal['signIn'].error = 'Ошибка при входе в систему! Проверьте введенные данные';
             });
 
         },
+
+        // ***** officers
+        officerSignUp(dataSignUp, repassword) {
+            if (dataSignUp.password !== repassword) {
+                this.modal['signUp'].error = 'Пароль и его повтор не совпадают!';
+                return;
+            }
+
+            this.axiosSetting.connectionApiAuth.post('api/officers', dataSignUp)
+            .then(() => {
+                this.modal['signUp'].error = '';
+                this.modal['signUp'].success = 'Поздравляем! Вы успешно зарегистрировались в сервисе поиска велосипедов.\r\n';
+                this.modal['signUp'].success += 'Работать в системе вы сможете после подтверждения вашей учетной записи.';
+                //this.modal['signUp'].visible = false;
+
+                this.inWork.add = false;
+            })
+            .catch(() => {
+                this.modal['signUp'].error = 'Ошибка! Проверьте введенные данные';
+            });
+
+        },
+
+        officerDelete(id) {            
+
+            this.axiosSetting.connectionApiAuth.delete('api/officers/' + id)
+            .then(() => {
+                this.inWork.delete = false;
+            })
+            .catch(() => {
+                this.modal['signUp'].error = 'Ошибка удаления пользователя!';
+            });
+        }
+
+        
+    },
+
+    created() {
+
+        this.axiosSetting.connectionApiNoAuth = axios.create({
+            baseURL: this.axiosSetting.hostAndPortForApi,
+            timeout: 0,
+            headers: {
+                'Content-type': 'application/json',
+            }
+        });
+
+        this.axiosSetting.connectionApiAuth = axios.create({
+            baseURL: this.axiosSetting.hostAndPortForApi,
+            timeout: 0,
+            headers: {
+                'Content-type': 'application/json',
+                'Authorization': `Bearer ${this.globalSetting.token}`,
+            }
+        });
+        
+        //this.systemSignIn();
+        //this.systemSignIn();
     },
 }
 </script>
 
-<style>
+<style scoped>
     body {
         margin: 0px;
         padding: 0px;
@@ -120,7 +358,8 @@ export default {
         color: #2c3e50;
     }
 
-    .common-hf{
+    /* HEADER - FOOTER */
+    .common-header_footer{
         box-sizing: border-box;
         margin: 0;
         padding: 12px 20px;
@@ -130,6 +369,7 @@ export default {
         background-color: #fcfcfc;
     }
 
+    /* HEADER */
     .header{
         border-bottom: 1px solid #eee;
         display: flex;
@@ -137,16 +377,44 @@ export default {
         align-items: center;
     }
 
-    .header-nav-item{
+    .header-nav_main-item{
         color: #555;
         font-weight: 600;
         text-decoration: none;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s linear 0s;
     }
 
-    .header-nav-item:not(:last-child){
+    .header-nav_main-item:hover{
+        color: #333;
+        border-bottom-color: #333;
+    }
+
+    .header-nav_main-item:not(:last-child){
         margin-right: 20px;
     }
 
+    .router-link-active {
+        color: #333;
+        border-bottom-color: #333;
+    }
+
+    /* ----- */
+
+    .header-nav_user {
+        display: flex;
+        align-items: center;
+    }
+
+    .header-nav_user-item {
+        cursor: pointer;
+    }
+
+    .header-nav_user-item:not(:last-child){
+        margin-right: 10px;
+    }
+
+    /* INNER */
     .inner{
         box-sizing: border-box;
         background-color: #fff;
@@ -155,6 +423,7 @@ export default {
         min-height: calc(100vh - 2 * 40px);
     }
 
+    /* FOOTER */
     .footer{
         display: flex;
         justify-content: flex-start;

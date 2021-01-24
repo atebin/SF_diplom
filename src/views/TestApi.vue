@@ -28,7 +28,7 @@ export default {
   data: () => {
     return {
       state: {
-        dataUserSignIn_TEST: {
+        dataGetToken: {
           email: 'student@skillfactory.ru',
           password: '123456',
         },
@@ -38,8 +38,8 @@ export default {
         },        
         dataUserSignUp: {
           email: 'test1@atebin.ru',
-          firstName: 'fn_test1',
-          lastName: 'ln_test1',
+          firstName: 'Александр',
+          lastName: 'Тебин',
           password: '123_atebin',
           repassword: '123_atebin',
           clientId: 'q1w2',
