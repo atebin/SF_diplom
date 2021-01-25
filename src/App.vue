@@ -33,7 +33,7 @@
                 >Вход</button>
                 <button
                     v-if="!globalSetting.isAuth"
-                    @click="openModal('signUp')"
+                    @click="openModal('signUp', 'self')"
                     class="header-nav_user-item"
                 >Регистрация</button>
                 <button
@@ -53,6 +53,7 @@
                 :openModal="openModal"
                 :inWork="inWork"
                 :setProcessInWork="setProcessInWork"
+                :officerApproved="officerApproved"
 
                 :isFormVisibleSignUp="modal.signUp.visible"
                 :modalClose="modalClose"
@@ -98,6 +99,7 @@
                     :clientId="globalSetting.clientId"
                     :formErrorText="modal['signUp'].error"
                     :formSuccessText="modal['signUp'].success"
+                    :modalMode="modal['signUp'].mode"
                 />
             </template>
         </Modal>
@@ -135,6 +137,7 @@ export default {
             inWork: {
                 add: false,
                 delete: false,
+                approved: false,
             },
             axiosSetting: {
                 hostAndPortForApi: HOST_AND_PORT_FOR_API,
@@ -144,11 +147,13 @@ export default {
             modal: {
                 signIn: {
                     visible: false,
+                    mode: '',
                     error: '',
                     success: '',
                 },
                 signUp: {
                     visible: false,
+                    mode: '',
                     error: '',
                     success: '',
                 }
@@ -159,12 +164,16 @@ export default {
     methods: {
 
         // application
-        openModal(modalName) {
+        openModal(modalName, mode = 'std') {
             this.modal[modalName].visible = true;
+            this.modal[modalName].mode = mode;
         },
 
         modalClose(modalName) {
             this.modal[modalName].visible = false;
+            this.modal[modalName].mode = '';
+            this.modal[modalName].error = '';
+            this.modal[modalName].success = '';
         },
 
         exitAuth() {
@@ -292,9 +301,17 @@ export default {
             this.axiosSetting.connectionApiAuth.post('api/officers', dataSignUp)
             .then(() => {
                 this.modal['signUp'].error = '';
-                this.modal['signUp'].success = 'Поздравляем! Вы успешно зарегистрировались в сервисе поиска велосипедов.\r\n';
-                this.modal['signUp'].success += 'Работать в системе вы сможете после подтверждения вашей учетной записи.';
-                //this.modal['signUp'].visible = false;
+                switch (this.modal['signUp'].mode) {
+                    case 'self':
+                        this.modal['signUp'].success = 'Поздравляем! Вы успешно зарегистрировались в сервисе поиска велосипедов.\r\n';
+                        this.modal['signUp'].success += 'Работать в системе вы сможете после подтверждения вашей учетной записи.';
+                        break;
+                    case 'user':
+                        this.modal['signUp'].success = 'Вы успешно зарегистрировали подтвердили сервисе поиска велосипедов ';
+                        this.modal['signUp'].success += 'нового ответственного сотрудника. С текущего момента он может ';
+                        this.modal['signUp'].success += 'полноценно работать в сисистеме.';
+                        break;
+                }
 
                 this.inWork.add = false;
             })
@@ -311,9 +328,21 @@ export default {
                 this.inWork.delete = false;
             })
             .catch(() => {
-                this.modal['signUp'].error = 'Ошибка удаления пользователя!';
+                console.log('Ошибка удаления пользователя!');
             });
-        }
+        },
+
+        officerApproved(dataApproved) {
+
+            this.axiosSetting.connectionApiAuth.put('api/officers/' + dataApproved._id, dataApproved)
+            .then(() => {
+                this.inWork.approved = false;
+            })
+            .catch(() => {
+                console.log('Ошибка подтверждения пользователя!');
+            });
+            
+        },
 
         
     },

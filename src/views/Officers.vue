@@ -33,8 +33,8 @@
         <div class="officer-email">{{ officer.email }}</div>
         <div class="officer-lastName">{{ officer.approved }}</div>
         <button 
-          :disabled="isBlockAction"
-          @click="eventApprovedOfficer(officer._id)"
+          :disabled="isBlockAction || officer.approved"
+          @click="allActionOfficer(key, 'approved')"
         >Подтвердить</button>
         <button 
           :disabled="isBlockAction"
@@ -94,6 +94,7 @@ export default {
     axiosSetting: Object,
     globalSetting: Object,
     officerDelete: Function,
+    officerApproved: Function,
 
     openModal: Function,
     inWork: Object,
@@ -112,23 +113,6 @@ export default {
       console.log('edit: ' + id);
     },
 
-    /*
-    deleteOfficer(id) {
-      this.officerDelete(id);
-      this.getDataFromServer();
-    },
-    */
-
-    /*
-    addOfficer() {
-      this.openModal('signUp');
-    },
-    */
-
-    eventApprovedOfficer(id) {
-      console.log('approved: ' + id);
-    },
-
     officerSignUpProxi(formData, repassword) {
       this.officerSignUp(formData, repassword);
       //this.getDataFromServer();
@@ -139,13 +123,37 @@ export default {
       // блокируем кнопки для исключения нажатия
       this.setProcessInWork(action);
 
+      let editDataOfficer = {};
+
       switch (action) {
         case 'add':
-          this.openModal('signUp');
+          this.openModal('signUp', 'user');
           break;
         case 'delete':
           this.officerDelete(id);
           break;
+        case 'approved':
+          console.log(id);
+          editDataOfficer._id = this.allOfficers[id]._id;
+          editDataOfficer.clientId = this.allOfficers[id].clientId;
+          editDataOfficer.approved = true;
+          editDataOfficer.email = this.allOfficers[id].email;
+          editDataOfficer.firstName = this.allOfficers[id].firstName;
+          editDataOfficer.lastName = this.allOfficers[id].lastName;
+          editDataOfficer.password = this.allOfficers[id].password;
+          this.officerApproved(editDataOfficer);
+          break;
+      }
+    },
+
+    updateDataOfficers(value) {
+      if (value) {
+        this.isBlockAction = true;
+      } else {
+        this.isBlockAction = false;
+        this.$nextTick(() => {
+          this.getDataFromServer();
+        })
       }
     },
 
@@ -189,6 +197,8 @@ export default {
 
   watch: {
     'inWork.add': function (value) {
+      this.updateDataOfficers(value);
+      /*
       if (value) {
         this.isBlockAction = true;
       } else {
@@ -197,9 +207,12 @@ export default {
           this.getDataFromServer();
         })
       }
+      */
     },
 
     'inWork.delete': function (value) {
+      this.updateDataOfficers(value);
+      /*
       if (value) {
         this.isBlockAction = true;
       } else {
@@ -208,7 +221,22 @@ export default {
           this.getDataFromServer();
         })
       }
-    }
+      */
+    },
+
+    'inWork.approved': function (value) {
+      this.updateDataOfficers(value);
+      /*
+      if (value) {
+        this.isBlockAction = true;
+      } else {
+        this.isBlockAction = false;
+        this.$nextTick(() => {
+          this.getDataFromServer();
+        })
+      }
+      */
+    },
   },
 
   mounted() {

@@ -2,27 +2,27 @@
   <form class="form">
         <div class="main">
             <div class="field-set">
-                <label class="field-label" for="field-email">Ваш логин (email):</label>
+                <label class="field-label" for="field-email">{{ textForMode[modalMode].fieldEmail }}:</label>
                 <input class="field-input" type="email" id="field-email" name="email" value="" placeholder="name@site.com" v-model="formData.email">
             </div>
 
             <div class="field-set">
-                <label class="field-label" for="field-first_name">Ваше имя:</label>
+                <label class="field-label" for="field-first_name">{{ textForMode[modalMode].fieldFirstName }}:</label>
                 <input class="field-input" type="text" id="field-first_name" name="firstName" value="" placeholder="Алексей" v-model="formData.firstName">
             </div>
 
             <div class="field-set">
-                <label class="field-label" for="field-last_name">Ваша фамилия:</label>
+                <label class="field-label" for="field-last_name">{{ textForMode[modalMode].fieldLastName }}:</label>
                 <input class="field-input" type="text" id="field-last_name" name="lastName" value="" placeholder="Николаев" v-model="formData.lastName">
             </div>
 
             <div class="field-set">
-                <label class="field-label" for="field-password">Ваш пароль:</label>
+                <label class="field-label" for="field-password">{{ textForMode[modalMode].fieldPassword }}:</label>
                 <input class="field-input" type="password" id="field-password" name="password" value="" placeholder="*********" v-model="formData.password">
             </div>
 
             <div class="field-set">
-                <label class="field-label" for="field-repassword">Повтор пароля:</label>
+                <label class="field-label" for="field-repassword">{{ textForMode[modalMode].fieldRepassword }}:</label>
                 <input class="field-input" type="password" id="field-repassword" name="repassword" value="" placeholder="*********" v-model="repassword">
             </div>
         </div>
@@ -41,7 +41,7 @@
             v-if="formSuccessText === ''"
             class="footer"
         >
-            <button @click.prevent="officerSignUp(formData, repassword)">Зарегистрироваться</button>
+            <button @click.prevent="officerSignUp(formData, repassword)">{{ textForMode[modalMode].button }}</button>
         </div>
 
         <div 
@@ -62,6 +62,7 @@ export default {
         formErrorText: String,
         formSuccessText: String,
         clientId: String,
+        modalMode: String,
     },
 
     data: () => {
@@ -75,11 +76,40 @@ export default {
                 approved: false,
             },
             repassword: '',
+            textForMode: {
+                self: {
+                    fieldEmail: 'Ваш логин (email)',
+                    fieldFirstName: 'Ваше имя',
+                    fieldLastName: 'Ваша фамилия',
+                    fieldPassword: 'Ваш пароль',
+                    fieldRepassword: 'Повтор пароля',
+                    button: 'Зарегистрироваться'
+                },
+                user: {
+                    fieldEmail: 'Логин (email)',
+                    fieldFirstName: 'Имя',
+                    fieldLastName: 'Фамилия',
+                    fieldPassword: 'Пароль',
+                    fieldRepassword: 'Повтор пароля',
+                    button: 'Зарегистрировать и подтвердить'
+                },
+            }
         }
     },
 
     methods: {
     },
+
+    created() {
+        switch (this.modalMode) {
+            case 'self': 
+                this.formData.approved = false;
+                break;
+            case 'user': 
+                this.formData.approved = true;
+                break;
+        }
+    }
 }
 </script>
 
