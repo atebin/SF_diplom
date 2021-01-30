@@ -53,13 +53,6 @@
 
                 :checkStatus="checkStatus"
                 :approveCheckStatus="approveCheckStatus"
-
-                :isFormVisibleSignUp="modal.signUp.visible"
-                :modalClose="modalClose"
-                :officerSignUp="officerSignUp"
-                :clientId="globalSetting.clientId"
-                :formErrorText="modal['signUp'].error"
-                :formSuccessText="modal['signUp'].success"
             ></router-view>
         </div>
 
