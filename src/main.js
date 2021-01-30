@@ -5,7 +5,7 @@ import Home from './views/Home.vue'
 import Notice from './views/Notice.vue'
 import Cases from './views/Cases.vue'
 import Officers from './views/Officers.vue'
-import TestApi from './views/TestApi.vue'
+import OfficerDetail from './views/OfficerDetail.vue'
 
 
 Vue.config.productionTip = false
@@ -17,7 +17,7 @@ const routes = [
   { path: '/notice', component: Notice, props: {newCaseMode: 'noAuth'}},  
   { path: '/cases', component: Cases},
   { path: '/officers', component: Officers},
-  { path: '/testapi', component: TestApi}, 
+  { name: 'officerDetail', path: '/officer/:id', component: OfficerDetail},
 ]
 
 const router = new VueRouter({

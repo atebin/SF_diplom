@@ -1,5 +1,5 @@
 <template>
-  <form class="form">
+    <form class="form">
         <div class="main">
             <div class="field-set">
                 <label class="field-label" for="field-email">{{ textForMode[modalMode].fieldEmail }}:</label>
@@ -49,7 +49,8 @@
             class="footer"
         >
             <button @click.prevent="modalClose('signUp')">Ок</button>
-        </div>  </form>
+        </div>  
+    </form>
 </template>
 
 <script>

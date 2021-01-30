@@ -26,7 +26,7 @@
         v-for="(officer, key) in allOfficers"
         :key="key"
         class="officer"
-        @dblclick="eventEditOfficer"
+        @dblclick="editOfficer(officer._id, key)"
       >
         <div class="officer-firstName">{{ officer.firstName }}</div>
         <div class="officer-lastName">{{ officer.lastName }}</div>
@@ -34,15 +34,15 @@
         <div class="officer-lastName">{{ officer.approved }}</div>
         <button 
           :disabled="isBlockAction || officer.approved"
-          @click="allActionOfficer(key, 'approved')"
+          @click="getCheckStatus(key, 'approve')"
         >Подтвердить</button>
         <button 
           :disabled="isBlockAction"
-          @click="eventEditOfficer(officer._id)"
+          @click="editOfficer(officer._id, key)"
         >Редактировать</button>
         <button 
           :disabled="isBlockAction"
-          @click="allActionOfficer(officer._id, 'delete')"
+          @click="getCheckStatus(officer._id, 'delete')"
         >Удалить</button>
       </li>
     </ul>
@@ -87,6 +87,10 @@ export default {
       allOfficers: {},
       isDataLoad: false,
       isBlockAction: false,
+      preCheckStatus: {
+        id: '',
+        action: '',
+      }
     }
   },
 
@@ -100,6 +104,9 @@ export default {
     inWork: Object,
     setProcessInWork: Function,
 
+    checkStatus: String,
+    approveCheckStatus: Function,
+
     //isFormVisibleSignUp: Boolean,
     //modalClose: Function,
     //officerSignUp: Function,
@@ -109,13 +116,27 @@ export default {
   },
 
   methods: {
-    eventEditOfficer(id) {
+    editOfficer(id, key) {
       console.log('edit: ' + id);
+      //this.$router.push({ path: `/officer/${id}`, params: {officerData: this.allOfficers[key]}});
+      this.$router.push({ name: 'officerDetail', params: {id: id, officerData: this.allOfficers[key]}});
     },
 
     officerSignUpProxi(formData, repassword) {
       this.officerSignUp(formData, repassword);
       //this.getDataFromServer();
+    },
+
+    getCheckStatus(id, action) {
+      if (this.preCheckStatus.id !== '' && this.preCheckStatus.action !== '') {
+        console.log('Ошибка! Старт действия при незавершенном процессе, запущенном ранее!');
+        return;
+      }
+
+      this.preCheckStatus.id = id;
+      this.preCheckStatus.action = action;
+      console.log('action: ' + action);
+      this.approveCheckStatus(action);
     },
 
     allActionOfficer(id, action) {
@@ -132,7 +153,7 @@ export default {
         case 'delete':
           this.officerDelete(id);
           break;
-        case 'approved':
+        case 'approve':
           console.log(id);
           editDataOfficer._id = this.allOfficers[id]._id;
           editDataOfficer.clientId = this.allOfficers[id].clientId;
@@ -196,46 +217,36 @@ export default {
   },
 
   watch: {
+    'globalSetting.isAuth': function(value) {
+        if (!value) {
+            this.$router.push({ path: '/home'});
+        }
+    },
+
     'inWork.add': function (value) {
       this.updateDataOfficers(value);
-      /*
-      if (value) {
-        this.isBlockAction = true;
-      } else {
-        this.isBlockAction = false;
-        this.$nextTick(() => {
-          this.getDataFromServer();
-        })
-      }
-      */
     },
 
     'inWork.delete': function (value) {
       this.updateDataOfficers(value);
-      /*
-      if (value) {
-        this.isBlockAction = true;
-      } else {
-        this.isBlockAction = false;
-        this.$nextTick(() => {
-          this.getDataFromServer();
-        })
-      }
-      */
     },
 
-    'inWork.approved': function (value) {
+    'inWork.approve': function (value) {
       this.updateDataOfficers(value);
-      /*
-      if (value) {
-        this.isBlockAction = true;
-      } else {
-        this.isBlockAction = false;
-        this.$nextTick(() => {
-          this.getDataFromServer();
-        })
+    },
+
+    'checkStatus': function (value) {
+      switch (value) {
+        case 'yes':
+          this.allActionOfficer(this.preCheckStatus.id, this.preCheckStatus.action);
+          this.preCheckStatus.id ='';
+          this.preCheckStatus.action = '';
+          break;
+        case 'no':
+          this.preCheckStatus.id ='';
+          this.preCheckStatus.action = '';
+          break;
       }
-      */
     },
   },
 

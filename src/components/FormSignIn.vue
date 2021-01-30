@@ -1,5 +1,5 @@
 <template>
-  <form class="form">
+    <form class="form">
         <div class="main">
             <div class="field-set">
                 <label class="field-label" for="field-email">Ваш логин (email):</label>
@@ -25,7 +25,7 @@
             v-if="formSuccessText !== ''"
             class="success"
         >{{ formSuccessText }}</div>
-  </form>
+    </form>
 </template>
 
 <script>

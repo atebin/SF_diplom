@@ -20,10 +20,6 @@
                     class="header-nav_main-item"
                     v-if="globalSetting.isAuth"
                 >Ответственные сотрудники</router-link>
-                <router-link 
-                    to="/testapi" 
-                    class="header-nav-item"
-                >Test API</router-link>
             </div>
             <div class="header-nav_user">
                 <button
@@ -55,6 +51,9 @@
                 :setProcessInWork="setProcessInWork"
                 :officerApproved="officerApproved"
 
+                :checkStatus="checkStatus"
+                :approveCheckStatus="approveCheckStatus"
+
                 :isFormVisibleSignUp="modal.signUp.visible"
                 :modalClose="modalClose"
                 :officerSignUp="officerSignUp"
@@ -65,9 +64,7 @@
         </div>
 
         <div class="common-header_footer footer">
-            <div class="informer">Информер 1</div>
-            <div class="informer">Информер 2</div>
-            <div class="informer">Информер 3</div>
+            <!--div class="informer">Информер 1</div-->
         </div>
 
         <Modal
@@ -104,6 +101,20 @@
             </template>
         </Modal>
 
+        <Modal
+            v-if="modal.yesNo.visible"
+            modalName='yesNo'
+            :modalClose="setCheckStatus"
+        >
+            
+            <template v-slot:main>
+                <FormYesNo 
+                    :modalMode="modal['yesNo'].mode"
+                    :setCheckStatus="setCheckStatus"
+                />
+            </template>
+        </Modal>
+
   </div>
 </template>
 
@@ -116,6 +127,8 @@ import axios from 'axios'
 import Modal from './components/Modal.vue'
 import FormSignIn from './components/FormSignIn.vue'
 import FormSignUp from './components/FormSignUp.vue'
+import FormYesNo from './components/FormYesNo.vue'
+//import OfficerDetail from './views/OfficerDetail.vue'
 
 export default {
     name: 'App',
@@ -124,6 +137,8 @@ export default {
         Modal,
         FormSignIn,
         FormSignUp,
+        FormYesNo,
+        //OfficerDetail,
     },
 
     data: () => {
@@ -137,8 +152,10 @@ export default {
             inWork: {
                 add: false,
                 delete: false,
-                approved: false,
+                approve: false,
+                edit: false,
             },
+            checkStatus: '',
             axiosSetting: {
                 hostAndPortForApi: HOST_AND_PORT_FOR_API,
                 connectionApiNoAuth: null,
@@ -152,6 +169,12 @@ export default {
                     success: '',
                 },
                 signUp: {
+                    visible: false,
+                    mode: '',
+                    error: '',
+                    success: '',
+                },
+                yesNo: {
                     visible: false,
                     mode: '',
                     error: '',
@@ -318,6 +341,9 @@ export default {
             .catch(() => {
                 this.modal['signUp'].error = 'Ошибка! Проверьте введенные данные';
             });
+        },
+
+        checkOfficerDelete() {
 
         },
 
@@ -332,19 +358,52 @@ export default {
             });
         },
 
-        officerApproved(dataApproved) {
+        officerApproved(dataApproved, mode = 'approve') {
 
             this.axiosSetting.connectionApiAuth.put('api/officers/' + dataApproved._id, dataApproved)
             .then(() => {
-                this.inWork.approved = false;
+                switch (mode) {
+                    case 'approve':
+                        this.inWork.approve = false;
+                        break;
+                    case 'edit':
+                        this.inWork.edit = false;
+                        break;
+                }
             })
             .catch(() => {
-                console.log('Ошибка подтверждения пользователя!');
+                 switch (mode) {
+                    case 'approve':
+                        this.inWork.approve = false;
+                        console.log('Ошибка подтверждения пользователя!');
+                        break;
+                    case 'edit':
+                        this.inWork.edit = false;
+                        console.log('Ошибка обновления данных пользователя!');
+                        break;
+                }
             });
-            
         },
 
-        
+        approveCheckStatus(mode) {
+            this.openModal('yesNo', mode);
+        },
+
+        setCheckStatus(status) {
+            //console.log('----------');
+            //console.log('checkStatus: ' + this.checkStatus);
+            this.checkStatus = '';
+            //console.log('checkStatus: ' + this.checkStatus);
+
+            this.$nextTick(() => {
+
+                //console.log('status: ' + status);
+                this.checkStatus = (status === 'yes' ? status : 'no');
+                //console.log('checkStatus: ' + this.checkStatus);
+                //console.log('----------');
+                this.modal['yesNo'].visible = false;
+            })
+        },
     },
 
     created() {
