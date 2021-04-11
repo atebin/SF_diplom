@@ -115,11 +115,16 @@ export default {
 </script>
 
 <style scoped>
+
     .main {
+        /*
         display: grid;
         grid-template-columns: auto;
         row-gap: 10px;
         margin-bottom: 20px;
+        */
+        padding: 0;
+        margin: 0 0 20px;
     }
 
     .footer {
@@ -132,15 +137,21 @@ export default {
         align-content: center;
     }
 
+    .field-set:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
     .field-label {
         margin-right: 20px;
         display: inline-block;
         white-space: nowrap;
+        text-align: left;
     }
 
     .field-input {
         display: block;
         flex-grow: 50;
+        min-width: 10px;
     }
 
     .error {
@@ -154,4 +165,5 @@ export default {
         color: green;
         text-align: center;
     }
+    
 </style>

@@ -12,12 +12,12 @@ Vue.config.productionTip = false
 Vue.use(VueRouter);
 
 const routes = [
-  { path: '/', component: Home},  
-  { path: '/home', component: Home},  
-  { path: '/notice', component: Notice, props: {newCaseMode: 'noAuth'}},  
-  { path: '/cases', component: Cases},
-  { path: '/officers', component: Officers},
-  { name: 'officerDetail', path: '/officer/:id', component: OfficerDetail},
+  { path: '/', text: 'Главная', component: Home},  
+  { path: '/home', text: 'Главная', component: Home},  
+  { path: '/notice', text: 'Сообщить о краже', component: Notice, props: {newCaseMode: 'noAuth'}},  
+  { path: '/cases', text: 'Украденные велосипеды', component: Cases},
+  { path: '/officers', text: 'Ответственные сотрудники', component: Officers},
+  { name: 'officerDetail', text: 'Ответственные сотрудники', path: '/officer/:id', component: OfficerDetail},
 ]
 
 const router = new VueRouter({

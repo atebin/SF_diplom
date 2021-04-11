@@ -34,7 +34,7 @@
         <div class="officer-lastName">{{ officer.approved }}</div>
         <button 
           :disabled="isBlockAction || officer.approved"
-          @click="getCheckStatus(key, 'approve')"
+          @click="getCheckStatus(key, 'approveOfficer')"
         >Подтвердить</button>
         <button 
           :disabled="isBlockAction"
@@ -42,7 +42,7 @@
         >Редактировать</button>
         <button 
           :disabled="isBlockAction"
-          @click="getCheckStatus(officer._id, 'delete')"
+          @click="getCheckStatus(officer._id, 'deleteOfficer')"
         >Удалить</button>
       </li>
     </ul>
@@ -106,26 +106,22 @@ export default {
 
     checkStatus: String,
     approveCheckStatus: Function,
-
-    //isFormVisibleSignUp: Boolean,
-    //modalClose: Function,
-    //officerSignUp: Function,
-    //clientId: String,
-    //formErrorText: String,
-    //formSuccessText: String,
   },
 
   methods: {
     editOfficer(id, key) {
       console.log('edit: ' + id);
-      //this.$router.push({ path: `/officer/${id}`, params: {officerData: this.allOfficers[key]}});
       this.$router.push({ name: 'officerDetail', params: {id: id, officerData: this.allOfficers[key]}});
     },
 
+    
+    //убрал 15.02.2021 - похоже, не нужно в этом компоненте
+    /*
     officerSignUpProxi(formData, repassword) {
       this.officerSignUp(formData, repassword);
-      //this.getDataFromServer();
     },
+    */
+    
 
     getCheckStatus(id, action) {
       if (this.preCheckStatus.id !== '' && this.preCheckStatus.action !== '') {

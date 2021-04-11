@@ -51,16 +51,21 @@ export default {
 </script>
 
 <style scoped>
+
     .main {
+        /*
         display: grid;
-        grid-template-columns: auto;
+        grid-template-columns: 1fr;
         row-gap: 10px;
-        margin-bottom: 20px;
+        */
+        padding: 0;
+        margin: 0 0 20px;
     }
 
     .footer {
         display: flex;
         justify-content: center;
+        /*margin: 20px 0 0;*/
     }
 
     .field-set {
@@ -68,15 +73,21 @@ export default {
         align-content: center;
     }
 
+    .field-set:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
     .field-label {
         margin-right: 20px;
-        display: inline-block;
+        display: block;
         white-space: nowrap;
+        text-align: left;
     }
 
     .field-input {
         display: block;
         flex-grow: 50;
+        min-width: 10px;
     }
 
     .error {

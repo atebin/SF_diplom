@@ -28,11 +28,14 @@ export default {
 
     created() {
         switch (this.modalMode) {
-            case 'delete':
+            case 'deleteOfficer':
                 this.mainText = 'Удалить этого сотрудника из списка?';
                 break;
-            case 'approve':
+            case 'approveOfficer':
                 this.mainText = 'Подтвердить полномочия этого сотрудника?';
+                break;
+            case 'deleteCase':
+                this.mainText = 'Удалить эту запись из списка?';
                 break;
         }
         
@@ -42,11 +45,16 @@ export default {
 </script>
 
 <style>
+
     .main {
+        /*
         display: grid;
         grid-template-columns: auto;
         row-gap: 10px;
         margin-bottom: 20px;
+        */
+        padding: 0;
+        margin: 0 0 20px;
     }
 
     .footer {
@@ -59,4 +67,5 @@ export default {
         text-align: center;
         margin: 0 10px;
     }
+
 </style>

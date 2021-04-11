@@ -69,4 +69,8 @@ export default {
         justify-content: flex-end;
         margin-bottom: 20px;
     }
+
+    .modal-window-main {
+        width: 100%;
+    }
 </style>

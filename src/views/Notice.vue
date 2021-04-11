@@ -3,6 +3,7 @@
         class="home-form"
         :globalSetting="globalSetting"
         mode="add"
+        :newCase="newCase"
     />
 </template>
 
@@ -20,6 +21,7 @@
             newCaseMode: String,
             //isAuth: Boolean,
             globalSetting: Object,
+            newCase: Function,
         }
         
     }
@@ -31,5 +33,12 @@
         width: 50%;
         margin: 80px auto;
     }
+
+@media screen and (max-width: 768px) {
+
+    .home-form{
+        width: 80%;
+    }
+}
 
 </style>

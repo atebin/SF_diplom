@@ -1,9 +1,9 @@
 <template>
-    <form class="case">
+    <div class="case">
         <h2>сообщить о краже</h2>
         <div class="case-data-item">
             <span class="case-data-item-part1">Дата происшествия</span>
-            <input type="date" name="date" class="case-data-item-part2" v-model.lazy="dataCase.date" title="Дата отправки заявления о краже">
+            <!--input type="date" name="date" class="case-data-item-part2" v-model.lazy="dataCase.date" title="Дата отправки заявления о краже"-->
 
 
         </div>
@@ -13,33 +13,35 @@
             v-if="!this.isStatusActive"
         >
             <option
-                v-for="(status, num) in settings.statuses"
+                v-for="(status, num) in globalSetting.bikeSettings.statuses"
                 :key="num"
             >{{status}}</option>
         </select>      
-        <input type="text" class="case-data-item" placeholder="Номер велосипеда" v-model.lazy="dataCase.date" title="Номер велосипеда">        
+        <input type="text" class="case-data-item" placeholder="Номер велосипеда" v-model.lazy="dataCase.licenseNumber" title="Номер велосипеда">        
         <input type="text" class="case-data-item" placeholder="Цвет велосипеда" v-model.lazy="dataCase.color" title="Цвет велосипеда"> 
-        <input type="text" class="case-data-item" placeholder="ФИО заявителя" v-model.lazy="dataCase.ownerFullName" title="ФИО заявителя">  
         <select class="case-data-item" placeholder="Тип велосипеда" v-model="dataCase.type" title="Тип велосипеда">
             <option
-                v-for="(type, num) in settings.types"
+                v-for="(type, num) in globalSetting.bikeSettings.types"
                 :key="num"
             >{{type}}</option>
         </select>      
+        <input type="text" class="case-data-item" placeholder="ФИО заявителя" v-model.lazy="dataCase.ownerFullName" title="ФИО заявителя">  
+        <!--input v-if="globalSetting.isAuth" type="text" class="case-data-item" placeholder="Ответственный сотрудник" v-model.lazy="dataCase.officer" title="Ответственный сотрудник"-->        
         <textarea class="case-data-item" rows="7" placeholder="Описание велосипеда и ситуации" v-model.lazy="dataCase.description"></textarea>
+
         <textarea 
             class="case-data-item" 
             rows="7" 
             placeholder="Резюме" 
             v-model.lazy="dataCase.resolution"
-            v-if="dataCase.status==='done'"
+            v-if="(dataCase.status==='done' && globalSetting.isAuth)"
         ></textarea>
         <button 
             class="case-data-send"
-            @click="eventClickButtonSend"
+            @click.stop="eventClickButtonSend"
         >Отправить информацию</button> 
-        <!--input type="submit" value="Отправить информацию" class="case-data-send"-->     
-    </form>
+        <div class="case-data-result">{{ textResult }}</div>
+    </div>
 </template>
 
 <script>
@@ -50,27 +52,36 @@ export default {
     props: {
         globalSetting: Object,
         mode: String,
+        newCase: Function,
     },
 
     data: () => {
         return {
+            /*
             settings: {
                 statuses: ['new', 'in_progress', 'done'],
                 types: ['sport', 'general'],
-                modes: ['add', 'edit'],
+                //modes: ['add', 'edit'],
             },
+            */
             dataCase: {
-                status: 'new',
+                status: '',
                 date: null,
+                licenseNumber: '',
                 color: '',
-                ownerFullName: '',
                 type: '',
+                ownerFullName: '',
+                //officer: '',
+                createdAt: null,
+                updateAt: null,
+                clientId: '',
+                
                 description: '',
                 resolution: '',
-                createdAt: '',
-                updateAt: '',
-                clientId: '',
-            }
+            },
+
+            textResult: '',
+            idTimerTextResult: null,
         }
     },
 
@@ -101,22 +112,40 @@ export default {
             } else {
                 this.dataCase.clientId = '';
             }
+        },
+
+        'dataCase.date': function(value) {
+            this.dataCase.createdAt = value;
+            this.dataCase.updateAt = value;
+        },
+
+        textResult: function(newValue, oldValue) {
+            if (oldValue === '' && newValue !== '') {
+                console.log('IN textResult');
+                this.idTimerTextResult = setTimeout(this.hideTextResult, 5000);
+            }
         }
     },
 
     methods: {
 
+
+
         setDefaultValueInCase(editedCase) {
             let dateNow = new Date();
             console.log(`now: ${dateNow}`);
 
-            this.dataCase.date = new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate());
-            this.dataCase.createdAt = '22';
-            this.dataCase.updateAt = '33';
+            let preDate = dateNow;//new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate());
+            console.log(`now: ${preDate}`);
+
+            this.dataCase.date = preDate;//.toLocaleDateString();
+            this.dataCase.createdAt = preDate;//.toLocaleDateString();
+            this.dataCase.updateAt = preDate;//.toLocaleDateString();
 
             if (editedCase) {return}
 
-            this.dataCase.status = 'new';
+            this.dataCase.status = this.globalSetting.bikeSettings.statuses[0];
+            this.dataCase.licenseNumber = '';
             this.dataCase.color = '';
             this.dataCase.ownerFullName = '';
             this.dataCase.type = '';
@@ -127,14 +156,30 @@ export default {
         },
 
         eventClickButtonSend() {
-            console.log("eee");
-            this.setDefaultValueInCase(false);
+            this.newCase(this.dataCase);
+            this.textResult = 'Информация принята и внесена в систему!';
+            this.$nextTick(() => {
+                this.setDefaultValueInCase(false);
+            })            
+        },
+
+        hideTextResult() {
+            console.log('IN hideTextResult');
+            this.textResult = '';
+            this.idTimerTextResult = null;
         },
     },
 
     mounted() {
         this.setDefaultValueInCase(false);
     },
+
+    beforeDestroy() {
+        console.log('IN beforeDestroy');
+        if (this.idTimerTextResult !== null) {
+            clearTimeout(this.idTimerTextResult);
+        }
+    }
 
 }
 </script>
@@ -157,7 +202,8 @@ export default {
 
     .case-data-item{
         display: block;
-        width: 320px;
+        width: 100%;
+        /*max-width: 320px;*/
         margin: 0 auto;
         display: flex;
         justify-content: space-between;
@@ -183,7 +229,13 @@ export default {
         background-color: blue;
         color: #fff;
         padding: 10px 40px;
-        margin: 40px 0px;
+        margin: 40px 0 20px;
+    }
+
+    .case-data-result {
+        height: 30px;
+        color: #3b3;
+        margin: 0 0 20px;
     }
 
 </style>

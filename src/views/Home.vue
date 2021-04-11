@@ -60,4 +60,33 @@ export default {
         margin: 20px auto 40px;
         outline-color: red;
     }
+
+    @media screen and (max-width: 1000px) {
+        .home-image{
+            width: 60%;
+        }
+    }
+
+    @media screen and (max-width: 700px) {
+        .home-image{
+            width: 100%;
+        }
+        
+    }
+
+    @media screen and (max-width: 440px) {
+        .home-title{
+            margin: 40px 0 40px;
+            font-size: 24px;
+        }
+
+        .home-message {
+            font-size: 16px;
+        }
+        
+        .home-image{
+            width: 100%;
+            margin: 20px auto;
+        }
+    }
 </style>

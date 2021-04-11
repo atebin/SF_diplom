@@ -2,41 +2,70 @@
     <div id="app">
         <nav class="common-header_footer header">
             <div class="header-nav_main">
-                <router-link 
-                    to="/home" 
-                    class="header-nav_main-item"
-                >Главная</router-link>
-                <router-link 
-                    to="/notice" 
-                    class="header-nav_main-item"
-                >Сообщить о краже</router-link>
-                <router-link 
-                    to="/cases" 
-                    class="header-nav_main-item"
-                    v-if="globalSetting.isAuth"
-                >Украденные велосипеды</router-link>
-                <router-link 
-                    to="/officers" 
-                    class="header-nav_main-item"
-                    v-if="globalSetting.isAuth"
-                >Ответственные сотрудники</router-link>
+                <div 
+                    class="header-nav_main-mobile"
+                    @click="toggleStateNavMainExpand()"
+                >
+                    <img src="./assets/img/icon_menu.png" class="header-nav_main-icon_menu">
+                    {{ globalSetting.currentPage }}
+                </div>
+
+                <div class="header-nav_main-desktop">
+                    <div 
+                        v-if="((globalSetting.isNavMainExpand) || (globalSetting.appWidth > 800))"
+                        class="header-nav_main-menu" 
+                        @click="eventClickLinkNav"
+                    >
+                        <router-link 
+                            to="/home" 
+                            class="header-nav_main-item"
+                        >Главная</router-link>
+                        <router-link 
+                            to="/notice" 
+                            class="header-nav_main-item"
+                        >Сообщить о краже</router-link>
+                        <router-link 
+                            to="/cases" 
+                            class="header-nav_main-item"
+                            v-if="globalSetting.isAuth"
+                        >Украденные велосипеды</router-link>
+                        <router-link 
+                            to="/officers" 
+                            class="header-nav_main-item"
+                            v-if="globalSetting.isAuth"
+                        >Ответственные сотрудники</router-link>
+                    </div>
+                </div>
             </div>
             <div class="header-nav_user">
                 <button
                     v-if="!globalSetting.isAuth"
                     @click="openModal('signIn')"
                     class="header-nav_user-item"
-                >Вход</button>
+                    title="Вход"
+                >
+                    <img src="./assets/img/icon_enter_v2_100.jpg" class="header-nav_user-item-icon">
+                    <span class="header-nav_user-item-text">Вход</span>
+                </button>
                 <button
                     v-if="!globalSetting.isAuth"
                     @click="openModal('signUp', 'self')"
                     class="header-nav_user-item"
-                >Регистрация</button>
+                    title="Регистрация"
+                >
+                    <img src="./assets/img/icon_registration_100.jpg" class="header-nav_user-item-icon">
+                    <span class="header-nav_user-item-text">Регистрация</span>
+                </button>
                 <button
                     v-if="globalSetting.isAuth"
                     @click="exitAuth"
                     class="header-nav_user-item"
-                >Выход</button>
+                    title="Выход"
+                >
+                    <img src="./assets/img/icon_exit_100.jpg" class="header-nav_user-item-icon">
+                    <span class="header-nav_user-item-text">Выход</span>
+                </button>
+
             </div>
         </nav>
 
@@ -49,10 +78,14 @@
                 :openModal="openModal"
                 :inWork="inWork"
                 :setProcessInWork="setProcessInWork"
+                :setProcessInWorkEnd="setProcessInWorkEnd"
                 :officerApproved="officerApproved"
 
                 :checkStatus="checkStatus"
                 :approveCheckStatus="approveCheckStatus"
+
+                :newCase="newCase"
+                :textCustomerComment="modal.inputComment.success"
             ></router-view>
         </div>
 
@@ -108,6 +141,20 @@
             </template>
         </Modal>
 
+        <Modal
+            v-if="modal.inputComment.visible"
+            modalName='inputComment'
+            :modalClose="setComment"
+        >
+            
+            <template v-slot:main>
+                <FormInputComment 
+                    textLabel="Завершающий комментарий по этому велосипеду"
+                    :setComment="setComment"
+                />
+            </template>
+        </Modal>
+
   </div>
 </template>
 
@@ -121,7 +168,7 @@ import Modal from './components/Modal.vue'
 import FormSignIn from './components/FormSignIn.vue'
 import FormSignUp from './components/FormSignUp.vue'
 import FormYesNo from './components/FormYesNo.vue'
-//import OfficerDetail from './views/OfficerDetail.vue'
+import FormInputComment from './components/FormInputComment.vue'
 
 export default {
     name: 'App',
@@ -131,7 +178,7 @@ export default {
         FormSignIn,
         FormSignUp,
         FormYesNo,
-        //OfficerDetail,
+        FormInputComment,
     },
 
     data: () => {
@@ -139,14 +186,28 @@ export default {
             globalSetting: {
                 clientId: CLIENT_ID,
                 token: TOKEN,
+                userId: '-',
+                userFullName: '-',
                 isAuth: false,
                 //isConnectedServer: false,
+                bikeSettings: {
+                    statuses: ['new', 'in_progress', 'done'],
+                    status_end: 'done',
+                    types: ['sport', 'general'],
+                },
+                currentPage: 'test',
+                isNavMainExpand: false,
+                appWidth: 1200,
             },
             inWork: {
                 add: false,
                 delete: false,
                 approve: false,
                 edit: false,
+
+                addCase: false,
+                deleteCase: false,
+                editCase: false,
             },
             checkStatus: '',
             axiosSetting: {
@@ -172,20 +233,59 @@ export default {
                     mode: '',
                     error: '',
                     success: '',
-                }
+                },
+                inputComment: {
+                    visible: false,
+                    mode: '',
+                    error: '',
+                    success: '',
+                },
             }           
         }
     },
 
     methods: {
 
+        resizeAppWidth(event) { 
+            this.setAppWidth(event.currentTarget.innerWidth);      
+        },
+
+        setAppWidth(newValue) {
+            this.globalSetting.appWidth = newValue;
+        },
+
+        toggleStateNavMainExpand() {
+            this.setStateNavMainExpand(!this.globalSetting.isNavMainExpand);
+        },
+
+        setStateNavMainExpand(newValue) {
+            this.globalSetting.isNavMainExpand = newValue;
+        },
+
+        eventClickLinkNav() {
+
+            let currentRouteCode = this.$router.history.current.fullPath;
+            let allRoute = this.$router.options.routes;
+
+            allRoute.forEach(elem => {
+                if (elem.path === currentRouteCode) {
+                    this.globalSetting.currentPage = elem.text;
+                }
+            })
+
+            this.toggleStateNavMainExpand();
+        },
+
         // application
         openModal(modalName, mode = 'std') {
             this.modal[modalName].visible = true;
             this.modal[modalName].mode = mode;
-        },
+            this.modal[modalName].success = "";
+            this.modal[modalName].error = "";
+       },
 
         modalClose(modalName) {
+            console.log(modalName);
             this.modal[modalName].visible = false;
             this.modal[modalName].mode = '';
             this.modal[modalName].error = '';
@@ -198,6 +298,10 @@ export default {
 
         setProcessInWork(processName) {
             this.inWork[processName] = true;
+        },
+
+        setProcessInWorkEnd(processName) {
+            this.inWork[processName] = false;
         },
 
         // ***** system
@@ -280,6 +384,10 @@ export default {
 
             this.axiosSetting.connectionApiNoAuth.post('api/auth/sign_in', dataSignIn)
             .then(response => {
+                console.log('*****************************');
+                console.log('auth');
+                console.log(response);
+                console.log('*****************************');
 
                 let errorTokenOrClienId = false;
                 if (response.data.token === '') {
@@ -295,7 +403,9 @@ export default {
                 }
 
                 if (!errorTokenOrClienId) {
-                    this.globalSetting.token = response.data.token
+                    this.globalSetting.token = response.data.token;
+                    this.globalSetting.userId = response.data._id;
+                    this.globalSetting.userFullName = `${response.data.firstName} ${response.data.lastName}`;
                     this.globalSetting.isAuth = true;
                     this.modal['signIn'].error = '';
                     this.modal['signIn'].visible = false;
@@ -333,6 +443,51 @@ export default {
             })
             .catch(() => {
                 this.modal['signUp'].error = 'Ошибка! Проверьте введенные данные';
+            });
+        },
+
+        // ***** cases
+        newCase(dataCase) {
+            console.log('dataCase');
+            console.log({ dataCase });
+
+            if (this.globalSetting.isAuth) {
+                let authDataCase = {
+                    //clientId: dataCase.clientId,
+                    color: dataCase.color,
+                    createdAt: dataCase.createdAt,
+                    date: dataCase.date,
+                    description: dataCase.description,
+                    licenseNumber: dataCase.licenseNumber,
+                    ownerFullName: dataCase.ownerFullName,
+                    resolution: dataCase.resolution,
+                    status: dataCase.status,
+                    type: dataCase.type,
+                    updateAt: dataCase.updateAt,
+                    officer: this.globalSetting.userId,
+                }
+
+                this.axiosSetting.connectionApiAuth.post('api/cases', authDataCase)
+                .then(() => {
+                    console.log('inWork.addCase: ' + this.inWork.addCase);
+                    //this.inWork.addCase = false;
+                    this.setProcessInWorkEnd('addCase');
+                    console.log('inWork.addCase: ' + this.inWork.addCase);
+                })
+                .catch(() => {
+                    console.log('Ошибка авторизованного добавления данных о краже! Проверьте введенные данные');
+                });
+
+                return;
+            }
+
+            this.axiosSetting.connectionApiNoAuth.post('api/public/report', dataCase)
+            .then(() => {
+                //this.inWork.addCase = false;
+                this.setProcessInWorkEnd('addCase');
+            })
+            .catch(() => {
+                console.log('Ошибка неавторизованного добавления данных о краже! Проверьте введенные данные');
             });
         },
 
@@ -397,6 +552,20 @@ export default {
                 this.modal['yesNo'].visible = false;
             })
         },
+
+        setComment(status = '', comment = '-') {
+            this.checkStatus = '';
+
+            this.$nextTick(() => {
+
+                this.checkStatus = status;//(status === 'ok' ? status : 'no');
+                this.modal['inputComment'].success = comment;
+                this.modal['inputComment'].visible = false;
+            })
+        },
+
+
+
     },
 
     created() {
@@ -417,10 +586,24 @@ export default {
                 'Authorization': `Bearer ${this.globalSetting.token}`,
             }
         });
+
+        window.addEventListener('popstate', this.eventClickLinkNav);
+        this.eventClickLinkNav();
         
         //this.systemSignIn();
         //this.systemSignIn();
     },
+
+    mounted() {
+
+        //let www = window.innerWidth;
+        //console.log(www);
+        this.setAppWidth(window.innerWidth);
+        window.addEventListener('resize', this.resizeAppWidth);
+        this.globalSetting.isNavMainExpand = false;
+    }
+
+
 }
 </script>
 
@@ -443,7 +626,7 @@ export default {
     .common-header_footer{
         box-sizing: border-box;
         margin: 0;
-        padding: 12px 20px;
+        padding: 12px 10px;
         font-size: 16px;
         line-height: 1;
         height: calc(10px + 20px + 10px);
@@ -458,12 +641,43 @@ export default {
         align-items: center;
     }
 
+    .header-nav_main {
+        position: relative;
+    }
+
+    .header-nav_main-mobile{
+        display: none;
+        width: 160px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 13px;
+    }
+
+    .header-nav_main-desktop {
+        display: block;
+    }
+
+    .header-nav_main-icon_menu {
+        height: 16px;
+        margin-right: 15px;
+    }
+
+    .header-nav_main-menu {
+        min-width: 174px;
+    }
+
     .header-nav_main-item{
         color: #555;
         font-weight: 600;
         text-decoration: none;
         border-bottom: 2px solid transparent;
         transition: all 0.15s linear 0s;
+        padding: 5px 5px;
+        border: 1px solid #ddd;
     }
 
     .header-nav_main-item:hover{
@@ -489,10 +703,31 @@ export default {
 
     .header-nav_user-item {
         cursor: pointer;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        background-color: #fff;
+        /*border-style: solid;*/
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 2px 5px;
     }
 
     .header-nav_user-item:not(:last-child){
         margin-right: 10px;
+    }
+
+    .header-nav_user-item:hover {
+        color: #555;
+        border: 1px solid #999;
+    }
+
+    .header-nav_user-item-icon {
+        width: 20px;
+        margin-right: 10px;
+    }
+
+    .header-nav_user-item-text {
     }
 
     /* INNER */
@@ -514,5 +749,53 @@ export default {
         */
         border-top: 1px solid #eee;
     }
+
+    @media screen and (max-width: 1100px) {
+
+        .common-header_footer {
+            font-size: 14px;
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+
+        .header-nav_main-mobile{
+            display: flex;
+        }
+
+        .header-nav_main-desktop{
+            position: absolute;
+            left: 3px;
+
+        }
+
+        .header-nav_main-menu {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-nav_main-item{
+            border: 1px solid #777;
+            padding: 2px 10px;
+        }
+
+        .header-nav_main-item:not(:last-child){
+            margin-right: 0;
+        }
+    }
+
+    @media screen and (max-width: 600px) {
+        .header-nav_user-item-text {
+            display: none;
+        }
+
+        .header-nav_user-item-icon {
+            margin-right: 0;
+        }
+    }
+
+
+
+
 
 </style>

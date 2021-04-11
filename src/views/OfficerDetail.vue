@@ -125,7 +125,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
     .form {
         display: grid;
         grid-template-columns: auto;
@@ -158,6 +158,7 @@ export default {
     .field-input {
         display: block;
         flex-grow: 50;
+        min-width: 10px;
     }
 
     .error {
@@ -171,4 +172,5 @@ export default {
         color: green;
         text-align: center;
     }
+    
 </style>
