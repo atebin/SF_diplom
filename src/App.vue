@@ -200,10 +200,10 @@ export default {
                 appWidth: 1200,
             },
             inWork: {
-                add: false,
-                delete: false,
-                approve: false,
-                edit: false,
+                addOfficer: false,
+                deleteOfficer: false,
+                approveOfficer: false,
+                editOfficer: false,
 
                 addCase: false,
                 deleteCase: false,
@@ -273,7 +273,9 @@ export default {
                 }
             })
 
-            this.toggleStateNavMainExpand();
+            if (this.globalSetting.isNavMainExpand) {                
+                this.toggleStateNavMainExpand();
+            }            
         },
 
         // application
@@ -439,7 +441,7 @@ export default {
                         break;
                 }
 
-                this.inWork.add = false;
+                this.inWork.addOfficer = false;
             })
             .catch(() => {
                 this.modal['signUp'].error = 'Ошибка! Проверьте введенные данные';
@@ -491,42 +493,38 @@ export default {
             });
         },
 
-        checkOfficerDelete() {
-
-        },
-
         officerDelete(id) {            
 
             this.axiosSetting.connectionApiAuth.delete('api/officers/' + id)
             .then(() => {
-                this.inWork.delete = false;
+                this.inWork.deleteOfficer = false;
             })
             .catch(() => {
                 console.log('Ошибка удаления пользователя!');
             });
         },
 
-        officerApproved(dataApproved, mode = 'approve') {
+        officerApproved(dataApproved, mode = 'approveOfficer') {
 
             this.axiosSetting.connectionApiAuth.put('api/officers/' + dataApproved._id, dataApproved)
             .then(() => {
                 switch (mode) {
-                    case 'approve':
-                        this.inWork.approve = false;
+                    case 'approveOfficer':
+                        this.inWork.approveOfficer = false;
                         break;
-                    case 'edit':
-                        this.inWork.edit = false;
+                    case 'editOfficer':
+                        this.inWork.editOfficer = false;
                         break;
                 }
             })
             .catch(() => {
                  switch (mode) {
-                    case 'approve':
-                        this.inWork.approve = false;
+                    case 'approveOfficer':
+                        this.inWork.approveOfficer = false;
                         console.log('Ошибка подтверждения пользователя!');
                         break;
-                    case 'edit':
-                        this.inWork.edit = false;
+                    case 'editOfficer':
+                        this.inWork.editOfficer = false;
                         console.log('Ошибка обновления данных пользователя!');
                         break;
                 }
@@ -677,7 +675,7 @@ export default {
         border-bottom: 2px solid transparent;
         transition: all 0.15s linear 0s;
         padding: 5px 5px;
-        border: 1px solid #ddd;
+        /*border: 1px solid #ddd;*/
     }
 
     .header-nav_main-item:hover{
@@ -690,8 +688,8 @@ export default {
     }
 
     .router-link-active {
-        color: #333;
-        border-bottom-color: #333;
+        color: #393;/*  333  */
+        border-bottom-color: #393;
     }
 
     /* ----- */
@@ -765,6 +763,8 @@ export default {
 
         .header-nav_main-desktop{
             position: absolute;
+            background-color: #fcfcfc;
+            z-index: 2;
             left: 3px;
 
         }
@@ -775,12 +775,18 @@ export default {
         }
 
         .header-nav_main-item{
-            border: 1px solid #777;
+            border: 1px solid #ddd;
+            height: 36px;
             padding: 2px 10px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .header-nav_main-item:not(:last-child){
             margin-right: 0;
+            border-bottom: none;
         }
     }
 

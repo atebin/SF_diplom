@@ -6,21 +6,19 @@
       <button 
         class="nav-item"
         :disabled="isBlockAction"
-        @click="allActionOfficer('0000', 'add')"
+        @click="allActionOfficer('0000', 'addOfficer')"
       >Добавить сотрудника</button>
     </div>
 
     <ul class="officers" v-if="isDataLoad">
       <li
-        class="officer"
+        class="officer officer--desktop"
       >
-        <div class="officer-header">Имя</div>
-        <div class="officer-header">Фамилия</div>
-        <div class="officer-header">Email</div>
-        <div class="officer-header">Подтвержден</div>
-        <div class="officer-header"></div>
-        <div class="officer-header"></div>
-        <div class="officer-header"></div>
+        <div class="officer-header officer--a1">Подтвержден</div>
+        <div class="officer-header officer--b1">Имя</div>
+        <div class="officer-header officer--c1">Фамилия</div>
+        <div class="officer-header officer-header--desktop officer--d1">Email</div>
+        <div class="officer-header officer--e1"></div>
       </li>
       <li
         v-for="(officer, key) in allOfficers"
@@ -28,59 +26,44 @@
         class="officer"
         @dblclick="editOfficer(officer._id, key)"
       >
-        <div class="officer-firstName">{{ officer.firstName }}</div>
-        <div class="officer-lastName">{{ officer.lastName }}</div>
-        <div class="officer-email">{{ officer.email }}</div>
-        <div class="officer-lastName">{{ officer.approved }}</div>
+        <div class="officer-lastName officer--a1">
+            <img 
+              v-if="officer.approved"
+              class="officer-approved_img"
+              src="../assets/img/check_yes.jpg">
+            <img 
+              v-if="!officer.approved"
+              class="officer-approved_img"
+              src="../assets/img/check_no.jpg">
+            </div>
+        <div class="officer-firstName officer--b1">{{ officer.firstName }}</div>
+        <div class="officer-lastName officer--c1">{{ officer.lastName }}</div>
+        <div class="officer-email officer--d1">{{ officer.email }}</div>
         <button 
           :disabled="isBlockAction || officer.approved"
+          class="button_action officer--a2"
           @click="getCheckStatus(key, 'approveOfficer')"
         >Подтвердить</button>
         <button 
           :disabled="isBlockAction"
+          class="button_action officer--e1"
           @click="editOfficer(officer._id, key)"
         >Редактировать</button>
         <button 
           :disabled="isBlockAction"
+          class="button_action officer--e2"
           @click="getCheckStatus(officer._id, 'deleteOfficer')"
         >Удалить</button>
       </li>
     </ul>
 
-
-    <!--Modal
-        v-if="isFormVisibleSignUp"
-        modalName='signUp'
-        :modalClose="modalClose"
-    >
-        
-        <template v-slot:main>
-            <FormSignUp 
-                :modalClose="modalClose"
-                :officerSignUp="officerSignUpProxi"
-                :clientId="clientId"
-                :formErrorText="formErrorText"
-                :formSuccessText="formSuccessText"
-            />
-        </template>
-    </Modal-->
-
-
   </section>
 </template>
 
 <script>
-//import Modal from '../components/Modal.vue'
-//import FormSignUp from '../components/FormSignUp.vue'
-
 
 export default {
   name: 'Officers',
-
-  /*components: {
-    Modal,
-    FormSignUp,
-  },*/
 
   data: () => {
     return {
@@ -109,8 +92,8 @@ export default {
   },
 
   methods: {
+
     editOfficer(id, key) {
-      console.log('edit: ' + id);
       this.$router.push({ name: 'officerDetail', params: {id: id, officerData: this.allOfficers[key]}});
     },
 
@@ -131,7 +114,7 @@ export default {
 
       this.preCheckStatus.id = id;
       this.preCheckStatus.action = action;
-      console.log('action: ' + action);
+      //console.log('action: ' + action);
       this.approveCheckStatus(action);
     },
 
@@ -143,14 +126,14 @@ export default {
       let editDataOfficer = {};
 
       switch (action) {
-        case 'add':
+        case 'addOfficer':
           this.openModal('signUp', 'user');
           break;
-        case 'delete':
+        case 'deleteOfficer':
           this.officerDelete(id);
           break;
-        case 'approve':
-          console.log(id);
+        case 'approveOfficer':
+          //console.log(id);
           editDataOfficer._id = this.allOfficers[id]._id;
           editDataOfficer.clientId = this.allOfficers[id].clientId;
           editDataOfficer.approved = true;
@@ -219,26 +202,31 @@ export default {
         }
     },
 
-    'inWork.add': function (value) {
+    'inWork.addOfficer': function (value) {
       this.updateDataOfficers(value);
     },
 
-    'inWork.delete': function (value) {
+    'inWork.deleteOfficer': function (value) {
       this.updateDataOfficers(value);
     },
 
-    'inWork.approve': function (value) {
+    'inWork.approveOfficer': function (value) {
       this.updateDataOfficers(value);
     },
 
     'checkStatus': function (value) {
+      //console.log('checkStatus = IN');
       switch (value) {
         case 'yes':
+          //console.log('checkStatus = YES');
           this.allActionOfficer(this.preCheckStatus.id, this.preCheckStatus.action);
-          this.preCheckStatus.id ='';
-          this.preCheckStatus.action = '';
+          this.$nextTick(() => {            
+            this.preCheckStatus.id ='';
+            this.preCheckStatus.action = '';
+          })
           break;
         case 'no':
+          //console.log('checkStatus = NO');
           this.preCheckStatus.id ='';
           this.preCheckStatus.action = '';
           break;
@@ -265,10 +253,22 @@ export default {
   .officer {
     list-style: none;
     display: grid;
-    grid-template-columns: 2fr 2fr 2fr 1fr 1fr 1fr 1fr;
-    column-gap: 10px;
-    padding: 5px 10px;
+    grid-template-columns: 1fr 2fr 2fr 2fr 1fr;/*  1fr 1fr  */
+    grid-template-areas: 
+        "a1 b1 c1 d1 e1"
+        "a2 b1 c1 d1 e2";
+    column-gap: 20px;
+    row-gap: 10px;
+    padding: 15px 10px;
   }
+
+  .officer--a1 {grid-area: a1;}
+  .officer--a2 {grid-area: a2;}
+  .officer--b1 {grid-area: b1;}
+  .officer--c1 {grid-area: c1;}
+  .officer--d1 {grid-area: d1;}
+  .officer--e1 {grid-area: e1;}
+  .officer--e2 {grid-area: e2;}
 
   .officer:not(:last-child) {
     border-bottom: 1px solid #bbb;
@@ -276,5 +276,93 @@ export default {
 
   .officer-header {
     font-weight: 600;
+    font-size: 80%;
   }
+
+  .officer-approved_img {
+    display: block;
+    width: 30px;
+    margin: 0 auto;
+  }
+
+  .button_action {
+    font-size: 13px;
+  }
+
+@media screen and (max-width: 1000px) {
+
+  .officers {
+    font-size: 14px;
+  }
+
+  .officer {
+    column-gap: 10px;
+  }
+
+  .officer-header {
+    font-size: 100%;
+  }
+}
+
+@media screen and (max-width: 800px) {
+
+  .officers {
+    font-size: 13px;
+  }
+
+  .officer {
+    grid-template-columns: 1fr 2fr 2fr 1fr;
+    grid-template-areas: 
+        "a1 b1 c1 e1"
+        "a2 d1 d1 e2";
+  }
+
+  .officer-header--desktop {
+    display: none;
+  }
+
+  .button_action {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+
+  .title {
+    font-size: 18px;
+  }
+
+  .officer--desktop {
+    display: none;
+  }
+
+  .officer {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-areas: 
+        "a1 . a2 a2"
+        "b1 b1 b1 b1"
+        "c1 c1 c1 c1"
+        "d1 d1 d1 d1"
+        "e1 e1 e2 e2";
+  }
+
+  .officer-approved_img {
+    margin: 0;
+  }
+}
+
+@media screen and (max-width: 375px) {
+
+  .officer {
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas: 
+        "a1 a2"
+        "b1 b1"
+        "c1 c1"
+        "d1 d1"
+        "e1 e1"
+        "e2 e2";
+  }
+}
+
 </style>

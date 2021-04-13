@@ -132,13 +132,13 @@ export default {
     },
 
     editCaseOnServer(newData) {
-      console.log('step 3/1');
+      //console.log('step 3/1');
       if (!this.globalSetting.isAuth) {
         this.$router.push({ path: '/home'});
         return;
       }
 
-      console.log(newData);
+      //console.log(newData);
       this.axiosSetting.connectionApiAuth.put('api/cases/' + newData._id, newData)
         .then(() => {
           this.setProcessInWorkEnd('updateCase');
@@ -153,7 +153,7 @@ export default {
     },
 
     restoreValueStatus(numCase) {
-      console.log('numCase: ' + numCase);
+      //console.log('numCase: ' + numCase);
       this.allCases[numCase].status = this.preControlStatus[numCase];
     },
 
@@ -268,5 +268,12 @@ export default {
 </script>
 
 <style scoped>
+
+@media screen and (max-width: 600px) {
+
+  .title {
+    font-size: 18px;
+  }
+}
 
 </style>

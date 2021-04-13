@@ -32,7 +32,7 @@
 
             <div class="field-set">
                 <label class="field-label" for="field-repassword">Повтор пароля:</label>
-                <input class="field-input" type="password" id="field-repassword" name="repassword" value="" placeholder="" v-model="repassword">
+                <input class="field-input" type="password" id="field-repassword" name="repassword" value="" placeholder="*********" v-model="repassword">
             </div>
         </form>
 
@@ -88,8 +88,8 @@ export default {
                 return;
             }
 
-            this.setProcessInWork('edit');
-            this.officerApproved(this.officerData, 'edit');
+            this.setProcessInWork('editOfficer');
+            this.officerApproved(this.officerData, 'editOfficer');
         },
     },
 
@@ -100,7 +100,7 @@ export default {
             }
         },
 
-        'inWork.edit': function(value, preventValue) {
+        'inWork.editOfficer': function(value, preventValue) {
             if (value === false && preventValue === true) {
                 this.successText = 'Данные успешно обновлены!';
             }

@@ -3,7 +3,7 @@
         <div class="main">
             {{ textLabel }}
         </div>
-        <textarea class="" v-model="textComment"></textarea>
+        <textarea class="input_text" rows="5" v-model="textComment"></textarea>
         <div class="footer">
                 <button class="button" @click.prevent="setComment('ok', textComment)">Сохранить</button>
                 <button class="button" @click.prevent="setComment('esc', '-')">Отмена</button>
@@ -29,7 +29,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
     .main {
         /*
@@ -45,6 +45,11 @@ export default {
     .footer {
         display: flex;
         justify-content: center;
+    }
+
+    .input_text {
+        width: 100%;
+        margin: 0 0 20px;
     }
 
     .button {
